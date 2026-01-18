@@ -176,18 +176,25 @@ const Index = () => {
         </div>
 
         <Tabs defaultValue="setup" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="setup">
               <Icon name="Settings" className="mr-2 h-4 w-4" />
-              Настройка
+              <span className="hidden sm:inline">Настройка</span>
+              <span className="sm:hidden">Старт</span>
             </TabsTrigger>
             <TabsTrigger value="commands">
               <Icon name="Terminal" className="mr-2 h-4 w-4" />
-              Команды
+              <span className="hidden sm:inline">Команды</span>
+              <span className="sm:hidden">Cmd</span>
             </TabsTrigger>
             <TabsTrigger value="roles">
               <Icon name="Shield" className="mr-2 h-4 w-4" />
               Роли
+            </TabsTrigger>
+            <TabsTrigger value="admin">
+              <Icon name="Crown" className="mr-2 h-4 w-4" />
+              <span className="hidden md:inline">Админ</span>
+              <span className="md:hidden">👑</span>
             </TabsTrigger>
           </TabsList>
 
@@ -359,6 +366,211 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="admin">
+            <div className="grid gap-6">
+              <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Crown" className="h-6 w-6 text-purple-600" />
+                    Специальная админ-панель
+                  </CardTitle>
+                  <CardDescription>
+                    Расширенные функции для главного администратора (ID: 8151132002)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Alert className="mb-6 border-purple-200 bg-purple-50">
+                    <Icon name="Info" className="h-4 w-4 text-purple-600" />
+                    <AlertDescription className="ml-2 text-purple-800">
+                      В Telegram отправьте боту <strong>/start</strong> чтобы увидеть расширенное меню с 8 разделами!
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="BarChart3" className="h-5 w-5 text-blue-500" />
+                          📊 Статистика
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Полная аналитика пользователей, банов, варнов и действий за 24 часа
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="Settings" className="h-5 w-5 text-green-500" />
+                          ⚙️ Настройки
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Управление фильтрами, приветственным сообщением и автопроверками
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="Users" className="h-5 w-5 text-purple-500" />
+                          👥 Управление ролями
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Назначение и управление 5 уровнями администрации
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="ScrollText" className="h-5 w-5 text-orange-500" />
+                          📜 История действий
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Полный лог действий модераторов за последние 7 дней
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="Search" className="h-5 w-5 text-cyan-500" />
+                          🔍 Автопроверки
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Статистика проверок: боты, возраст, спам, чёрный список
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="Ban" className="h-5 w-5 text-red-500" />
+                          🚫 Чёрный список
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Управление чёрным списком: добавление/удаление ID
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="Bell" className="h-5 w-5 text-yellow-500" />
+                          🔔 Уведомления
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Настройка уведомлений о важных событиях в чате
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="hover:shadow-md transition-all hover:scale-105">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Icon name="Send" className="h-5 w-5 text-pink-500" />
+                          💬 Рассылка
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600">
+                          Отправка сообщений всем пользователям бота
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg">
+                    <h3 className="font-semibold mb-3 text-purple-800">🚀 Как использовать расширенное меню:</h3>
+                    <div className="space-y-2 text-sm text-gray-700">
+                      <p>• Откройте бота в Telegram с телефона с ID <strong>8151132002</strong></p>
+                      <p>• Отправьте команду <code className="bg-purple-200 px-2 py-1 rounded">/start</code></p>
+                      <p>• Увидите 8 кнопок с расширенными функциями</p>
+                      <p>• Нажимайте на кнопки для доступа к функциям</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Code" className="h-5 w-5" />
+                    Дополнительные команды админа
+                  </CardTitle>
+                  <CardDescription>
+                    Команды, доступные только главному администратору
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid gap-3">
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <code className="text-sm font-mono text-blue-800">/set_role @username &lt;роль&gt;</code>
+                        <p className="text-sm text-gray-600 mt-2">Назначить роль пользователю</p>
+                      </div>
+
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <code className="text-sm font-mono text-green-800">/set_filter &lt;тип&gt; &lt;значение&gt;</code>
+                        <p className="text-sm text-gray-600 mt-2">Настройка фильтров и проверок</p>
+                      </div>
+
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <code className="text-sm font-mono text-purple-800">/set_welcome &lt;текст&gt;</code>
+                        <p className="text-sm text-gray-600 mt-2">Изменить приветственное сообщение</p>
+                      </div>
+
+                      <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <code className="text-sm font-mono text-orange-800">/history @username</code>
+                        <p className="text-sm text-gray-600 mt-2">Посмотреть историю нарушений пользователя</p>
+                      </div>
+
+                      <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                        <code className="text-sm font-mono text-red-800">/blacklist_add &lt;user_id&gt; &lt;причина&gt;</code>
+                        <p className="text-sm text-gray-600 mt-2">Добавить в чёрный список</p>
+                      </div>
+
+                      <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                        <code className="text-sm font-mono text-red-800">/blacklist_remove &lt;user_id&gt;</code>
+                        <p className="text-sm text-gray-600 mt-2">Удалить из чёрного списка</p>
+                      </div>
+
+                      <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                        <code className="text-sm font-mono text-pink-800">/broadcast &lt;сообщение&gt;</code>
+                        <p className="text-sm text-gray-600 mt-2">Разослать сообщение всем пользователям</p>
+                      </div>
+
+                      <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <code className="text-sm font-mono text-yellow-800">/notify &lt;тип&gt; on/off</code>
+                        <p className="text-sm text-gray-600 mt-2">Вкл/выкл уведомления определённого типа</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

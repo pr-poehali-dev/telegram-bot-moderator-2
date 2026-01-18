@@ -157,16 +157,42 @@ def handle_command(message: Dict[Any, Any], cur, schema: str) -> Dict[str, Any]:
     
     # /start - главное меню
     if text == '/start':
-        keyboard = {
-            'inline_keyboard': [
-                [{'text': '🛡️ Модерация', 'callback_data': 'menu_moderation'}],
-                [{'text': '⚙️ Управление', 'callback_data': 'menu_admin'}],
-                [{'text': '📊 Статистика', 'callback_data': 'menu_stats'}],
-                [{'text': '📝 Жалобы', 'callback_data': 'menu_reports'}]
-            ]
-        }
-        
-        msg = f"""🤖 *Модерационный Бот*
+        # Специальное расширенное меню для админа 8151132002
+        if user_id == 8151132002:
+            keyboard = {
+                'inline_keyboard': [
+                    [{'text': '🛡️ Модерация', 'callback_data': 'menu_moderation'}, {'text': '📊 Статистика', 'callback_data': 'menu_stats'}],
+                    [{'text': '⚙️ Настройки', 'callback_data': 'menu_settings'}, {'text': '👥 Управление ролями', 'callback_data': 'menu_roles'}],
+                    [{'text': '📝 Жалобы', 'callback_data': 'menu_reports'}, {'text': '🔔 Уведомления', 'callback_data': 'menu_notifications'}],
+                    [{'text': '📜 История действий', 'callback_data': 'menu_history'}, {'text': '🔍 Автопроверки', 'callback_data': 'menu_autochecks'}],
+                    [{'text': '🚫 Чёрный список', 'callback_data': 'menu_blacklist'}, {'text': '💬 Рассылка', 'callback_data': 'menu_broadcast'}]
+                ]
+            }
+            
+            msg = f"""🚀 *Админ-Панель Управления*
+
+👑 Главный администратор: *{message['from'].get('first_name', 'Админ')}*
+Роль: *{get_role_name(role)}*
+
+🎛️ *Доступные функции:*
+• Полный контроль над модерацией
+• Настройка фильтров и автопроверок
+• Управление администрацией
+• Статистика и аналитика
+• Рассылка сообщений
+
+Выберите раздел:"""
+        else:
+            keyboard = {
+                'inline_keyboard': [
+                    [{'text': '🛡️ Модерация', 'callback_data': 'menu_moderation'}],
+                    [{'text': '⚙️ Управление', 'callback_data': 'menu_admin'}],
+                    [{'text': '📊 Статистика', 'callback_data': 'menu_stats'}],
+                    [{'text': '📝 Жалобы', 'callback_data': 'menu_reports'}]
+                ]
+            }
+            
+            msg = f"""🤖 *Модерационный Бот*
 
 Добро пожаловать! Ваша роль: *{get_role_name(role)}*
 
@@ -278,6 +304,7 @@ def handle_callback(callback: Dict[Any, Any], cur, schema: str) -> Dict[str, Any
     """Обработка кнопок"""
     data = callback['data']
     chat_id = callback['message']['chat']['id']
+    message_id = callback['message']['message_id']
     user_id = callback['from']['id']
     role = get_user_role(user_id, cur, schema)
     
@@ -286,14 +313,161 @@ def handle_callback(callback: Dict[Any, Any], cur, schema: str) -> Dict[str, Any
         total = cur.fetchone()[0]
         cur.execute(f"SELECT COUNT(*) FROM {schema}.users WHERE is_banned = TRUE")
         banned = cur.fetchone()[0]
+        cur.execute(f"SELECT COUNT(*) FROM {schema}.users WHERE warnings >= 3")
+        warned = cur.fetchone()[0]
+        cur.execute(f"SELECT COUNT(*) FROM {schema}.moderation_actions WHERE created_at > NOW() - INTERVAL '24 hours'")
+        actions_24h = cur.fetchone()[0]
         
-        msg = f"""📊 *Статистика*
+        msg = f"""📊 *Статистика бота*
 
-👥 Всего: {total}
-🚫 Забанено: {banned}"""
+👥 Всего пользователей: {total}
+🚫 Забанено: {banned}
+⚠️ С варнами (≥3): {warned}
+⚡ Действий за 24ч: {actions_24h}"""
         
         keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
-        answer_callback(callback['id'], msg, keyboard)
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_reports':
+        cur.execute(f"SELECT COUNT(*) FROM {schema}.reports WHERE status = 'pending'")
+        pending = cur.fetchone()[0]
+        
+        msg = f"""📝 *Жалобы*
+
+⏳ На рассмотрении: {pending}
+
+Используйте /report для создания жалобы"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_settings' and user_id == 8151132002:
+        cur.execute(f"SELECT setting_key, setting_value FROM {schema}.bot_settings ORDER BY setting_key")
+        settings = cur.fetchall()
+        
+        settings_text = '\n'.join([f"• *{key}*: {value}" for key, value in settings]) if settings else 'Настройки не заданы'
+        
+        msg = f"""⚙️ *Настройки бота*
+
+{settings_text}
+
+Для изменения используйте:
+/set_filter <тип> <значение>
+/set_welcome <текст>"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_roles' and user_id == 8151132002:
+        cur.execute(f"""SELECT role, COUNT(*) FROM {schema}.users 
+            WHERE role != 'member' GROUP BY role ORDER BY role
+        """)
+        roles = cur.fetchall()
+        
+        roles_text = '\n'.join([f"• *{get_role_name(role)}*: {count} чел." for role, count in roles]) if roles else 'Нет администраторов'
+        
+        msg = f"""👥 *Управление ролями*
+
+{roles_text}
+
+Для назначения роли:
+/set_role @username <роль>
+
+Доступные роли:
+• admin_senior
+• curator
+• moderator_senior
+• moderator_junior
+• watcher_senior"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_history' and user_id == 8151132002:
+        cur.execute(f"""SELECT action_type, COUNT(*), MAX(created_at)
+            FROM {schema}.moderation_actions
+            WHERE created_at > NOW() - INTERVAL '7 days'
+            GROUP BY action_type
+            ORDER BY COUNT(*) DESC
+        """)
+        history = cur.fetchall()
+        
+        history_text = '\n'.join([f"• *{action}*: {count} раз" for action, count, _ in history]) if history else 'Нет действий'
+        
+        msg = f"""📜 *История действий (7 дней)*
+
+{history_text}
+
+Для просмотра подробной истории:
+/history @username"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_autochecks' and user_id == 8151132002:
+        cur.execute(f"""SELECT check_type, result, COUNT(*)
+            FROM {schema}.auto_checks
+            WHERE created_at > NOW() - INTERVAL '7 days'
+            GROUP BY check_type, result
+        """)
+        checks = cur.fetchall()
+        
+        checks_text = '\n'.join([f"• *{check_type}* ({result}): {count}" for check_type, result, count in checks]) if checks else 'Нет проверок'
+        
+        msg = f"""🔍 *Автопроверки (7 дней)*
+
+{checks_text}
+
+✅ Активные проверки:
+• Боты (is_bot)
+• Возраст аккаунта
+• Спам-ссылки
+• Чёрный список"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_blacklist' and user_id == 8151132002:
+        cur.execute(f"SELECT COUNT(*) FROM {schema}.blacklist")
+        bl_count = cur.fetchone()[0]
+        
+        msg = f"""🚫 *Чёрный список*
+
+📋 Пользователей в списке: {bl_count}
+
+Управление:
+/blacklist_add <user_id> <причина>
+/blacklist_remove <user_id>
+/blacklist_list - показать список"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_notifications' and user_id == 8151132002:
+        msg = f"""🔔 *Уведомления*
+
+✅ Активные уведомления:
+• Новый участник
+• Бан пользователя
+• Новая жалоба
+• Спам-попытка
+• Автопроверка сработала
+
+Настройка: /notify <тип> on/off"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
+    
+    elif data == 'menu_broadcast' and user_id == 8151132002:
+        msg = f"""💬 *Рассылка сообщений*
+
+📢 Отправка сообщения всем пользователям:
+/broadcast <текст сообщения>
+
+⚠️ Используйте с осторожностью!"""
+        
+        keyboard = {'inline_keyboard': [[{'text': '◀️ Назад', 'callback_data': 'menu_main'}]]}
+        edit_telegram_message(chat_id, message_id, msg, keyboard)
         
     return {'status': 'ok'}
 
@@ -396,6 +570,28 @@ def mute_telegram_user(chat_id: int, user_id: int, duration: int) -> None:
         'until_date': until,
         'permissions': json.dumps({'can_send_messages': False})
     }
+    
+    try:
+        req = urllib.request.Request(url, data=urllib.parse.urlencode(data).encode())
+        urllib.request.urlopen(req)
+    except:
+        pass
+
+
+def edit_telegram_message(chat_id: int, message_id: int, text: str, keyboard: dict = None) -> None:
+    """Редактирование сообщения в Telegram"""
+    import urllib.request
+    import urllib.parse
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/editMessageText"
+    data = {
+        'chat_id': chat_id,
+        'message_id': message_id,
+        'text': text,
+        'parse_mode': 'Markdown'
+    }
+    if keyboard:
+        data['reply_markup'] = json.dumps(keyboard)
     
     try:
         req = urllib.request.Request(url, data=urllib.parse.urlencode(data).encode())
